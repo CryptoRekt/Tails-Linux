@@ -1,0 +1,93 @@
+[[!meta title="Improve Tails documentation"]]
+
+<div id="intro">
+
+<p>Tails documentation would greatly benefit from your help.</p>
+
+[[!toc levels=1]]
+
+</div>
+
+Good documentation is difficult to keep up-to-date. If you find a typo
+or an error in the documentation please let us know — ideally, by
+submitting a patch with your correction.
+
+# Writing
+
+The documentation on the website is not freely editable. The way we
+document things has serious security implications. People should be able
+to trust the Tails website as much as they trust Tails itself.
+Furthermore, every change in the documentation possibly breaks the
+translations that were made of the previous version.
+
+But there are still many ways you can start contributing:
+
+  - We maintain a list of [documentation
+    tasks](https://labs.riseup.net/code/projects/tails/issues?query_id=172).
+    You can start writing a draft in the corresponding ticket and then
+    [[ask us for review|contribute/merge_policy]].
+
+  - Small fixes and enhancements to the current documentation are
+    greatly welcome. This can be done by sending Git patches to
+    [[tails-dev@boum.org|about/contact#tails-dev]] or by publishing a
+    [[Git]] branch (for example to a fork on
+    [GitLab](https://gitlab.com/Tails/tails)). In general,
+    documentation changes should be based on the `master` branch.
+
+Documentation writers coordinate themselves on [[tails-dev@boum.org
+mailing list|about/contact#tails-dev]], our development mailing list.
+
+Documentation writers should also read our [[documentation
+guidelines|guidelines]].
+
+New documentation should be wrapped to 80 characters; however, please
+do not submit patches that merely re-wrap existing text, as this makes
+it harder to read the git history.
+
+We recommend you to [[build an offline version of the
+documentation|contribute/build/website]] to test your contributions
+before sharing them with us.
+
+# Tools
+
+<a id="compress-image"></a>
+
+## Image compression
+
+  - Images on our website are compressed and cleaned using the
+    [[compress-image.sh]] script. To run this script you need the
+    `optipng`, `advancecomp`, and `mat` packages.
+
+## QR codes
+
+  - To encode and decode QR codes, you can use the [[qrcode-encode.sh]]
+    and [[qrcode-decode.sh]] scripts. To run these scripts
+    you need to install the `qrencode` and `zbar-tools` packages.
+
+    For example (run from Tails' source root):
+
+        wiki/src/contribute/how/documentation/qrcode-encode.sh https://tails.boum.org/
+
+    Creates a QR code in tails_boum_org.png. And:
+
+        wiki/src/contribute/how/documentation/qrcode-decode.sh tails_boum_org.png
+
+    Outputs:
+
+        QR-Code:https://tails.boum.org/
+
+# Translating
+
+We want Tails [[end-user documentation|doc]] to be translated in
+as many languages as possible. See the [[guidelines for
+translators|contribute/how/translate]] for details.
+
+# Related pages
+
+  - [[Documentation guidelines|guidelines]]
+  - [[Checklist for release notes|release_notes]]
+
+# Talk to us
+
+You can subscribe to [[tails-dev@boum.org|about/contact#tails-dev]],
+our development mailing list.

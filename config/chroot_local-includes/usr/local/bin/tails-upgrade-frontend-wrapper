@@ -1,0 +1,75 @@
+#!/bin/sh
+
+set -e
+set -u
+
+CMD=$(basename ${0})
+
+. gettext.sh
+TEXTDOMAIN="tails"
+export TEXTDOMAIN
+
+# Import no_abort()
+. /usr/local/lib/tails-shell-library/common.sh
+
+TORDATE_DIR=/run/tordate
+TORDATE_DONE_FILE="${TORDATE_DIR}/done"
+INOTIFY_TIMEOUT=60
+MIN_REAL_MEMFREE=$((300 * 1024))
+RUN_AS_USER=tails-upgrade-frontend
+
+### Functions
+
+error () {
+    local cli_text="${CMD}: `gettext \"error:\"` ${@}"
+    local dialog_text="<b><big>`gettext \"Error\"`</big></b>
+
+${@}"
+    echo "${cli_text}" >&2
+    zenity --error --title "" --text "${dialog_text}"
+    exit 1
+}
+
+check_free_memory () {
+   local min_real_memfree memfree buffers cached real_memfree
+   local errormsg
+
+   min_real_memfree="$1"
+
+   memfree=$(awk '/^MemFree:/{print $2}' /proc/meminfo)
+   buffers=$(awk '/^Buffers:/{print $2}' /proc/meminfo)
+   cached=$(awk '/^Cached:/{print $2}' /proc/meminfo)
+   tmpfs=$(df --type=tmpfs --local --output=used --total | tail -n1)
+   real_memfree=$(($memfree + $buffers + $cached - $tmpfs))
+
+   errormsg="`gettext \"<b>Not enough memory available to check for upgrades.</b>
+
+Make sure this system satisfies the requirements for running Tails.
+See file:///usr/share/doc/tails/website/doc/about/requirements.en.html
+
+Try to restart Tails to check for upgrades again.
+
+Or do a manual upgrade.
+See https://tails.boum.org/doc/first_steps/upgrade#manual\"`"
+
+   if [ "$real_memfree" -lt "$MIN_REAL_MEMFREE" ] ; then
+      echo "Only $real_memfree MemFree + Buffers + Cached - usage of tmpfs, while $MIN_REAL_MEMFREE is needed." >&2
+      error "$errormsg"
+   fi
+}
+
+### Main
+
+sleep 30
+
+check_free_memory "$MIN_REAL_MEMFREE"
+
+# Go to a place where everyone, especially Archive::Tar::Wrapper called by
+# tails-install-iuk, can chdir back after it has chdir'd elsewhere to do
+# its job.
+cd /
+
+xhost +SI:localuser:"$RUN_AS_USER"
+no_abort sudo -u "$RUN_AS_USER" /usr/bin/tails-upgrade-frontend "${@}"
+xhost -SI:localuser:"$RUN_AS_USER"
+exit ${_NO_ABORT_RET}

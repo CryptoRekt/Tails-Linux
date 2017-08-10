@@ -1,0 +1,225 @@
+# SOME DESCRIPTIVE TITLE
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Tails website\n"
+"POT-Creation-Date: 2016-11-17 10:52+0000\n"
+"PO-Revision-Date: 2016-05-30 16:40-0000\n"
+"Last-Translator: Tails translators <tails@boum.org>\n"
+"Language-Team: Tails translators <tails-l10n@boum.org>\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.10\n"
+
+#. type: Plain text
+#, no-wrap
+msgid "[[!meta title=\"Documentation\"]]\n"
+msgstr "[[!meta title=\"Dokumentation\"]]\n"
+
+#. type: Plain text
+#, no-wrap
+msgid "<div class=\"tip\">\n"
+msgstr "<div class=\"tip\">\n"
+
+#. type: Plain text
+#, no-wrap
+msgid ""
+"<p>If this section doesn't answer your questions, you can also look at our\n"
+"[[FAQ|support/faq]].</p>\n"
+msgstr ""
+"<p>Falls dieser Abschnitt ihre Fragen nicht beantwortet, können Sie auch einen Blick auf unsere\n"
+"[[FAQ|support/faq]] werfen.</p>\n"
+
+#. type: Plain text
+#, no-wrap
+msgid "</div>\n"
+msgstr "</div>\n"
+
+#. type: Plain text
+msgid ""
+"Read about how you can help [[improving Tails documentation|/contribute/how/"
+"documentation]]."
+msgstr ""
+"Lesen Sie wie Sie [[die Tails-Dokumentation verbessern können|/contribute/"
+"how/documentation]]."
+
+#. type: Plain text
+msgid "- [[Introduction to this documentation|introduction]]"
+msgstr "- [[Einführung in diese Dokumentation|introduction]]"
+
+#. type: Title #
+#, no-wrap
+msgid "General information"
+msgstr "Allgemeine Informationen"
+
+#. type: Plain text
+#, no-wrap
+msgid "[[!inline pages=\"doc/about.index\" raw=\"yes\" sort=\"age\"]]\n"
+msgstr "[[!inline pages=\"doc/about.index.de\" raw=\"yes\" sort=\"age\"]]\n"
+
+#. type: Title #
+#, no-wrap
+msgid "Download and install"
+msgstr "Herunterladen und installieren"
+
+#. type: Bullet: '  - '
+msgid "[[Install from another Tails (for PC)|install/win/clone/overview]]"
+msgstr ""
+"[[Von einem anderen Tails aus installieren (für PC)|install/win/clone/"
+"overview]]"
+
+#. type: Bullet: '  - '
+msgid "[[Install from another Tails (for Mac)|install/mac/clone/overview]]"
+msgstr ""
+"[[Von einem anderen Tails aus installieren (für Mac)|install/mac/clone/"
+"overview]]"
+
+#. type: Bullet: '  - '
+msgid "[[Install from Windows|install/win/usb/overview]]"
+msgstr "[[Installation unter Windows|install/win/usb/overview]]"
+
+#. type: Bullet: '  - '
+#, fuzzy
+#| msgid "[[Install from Debian or Ubuntu|install/debian/usb/overview]]"
+msgid "[[Install from Debian, Ubuntu, or Mint|install/debian/usb/overview]]"
+msgstr ""
+"[[Von Debian oder Ubuntu aus installieren|install/debian/usb/overview]]"
+
+#. type: Bullet: '  - '
+#, fuzzy
+#| msgid ""
+#| "[[Install from Debian or Ubuntu using the command line and GnuPG|install/"
+#| "expert/usb/overview]]"
+msgid ""
+"[[Install from Debian, Ubuntu, or Mint using the command line and GnuPG|"
+"install/expert/usb/overview]]"
+msgstr ""
+"[[Installation von Debian oder Ubuntu aus unter Nutzung der Kommandozeile "
+"und GnuPG|install/expert/usb/overview]]"
+
+#. type: Bullet: '  - '
+msgid "[[Install from other Linux distributions|install/linux/usb/overview]]"
+msgstr ""
+"[[Von anderen Linux-Distributionen aus installieren|install/linux/usb/"
+"overview]]"
+
+#. type: Bullet: '  - '
+msgid ""
+"[[Install from Mac OS X by burning a DVD first|install/mac/dvd/overview]]"
+msgstr ""
+"[[Von Mac OS X aus eine DVD brennen und anschließend installieren|install/"
+"mac/dvd/overview]]"
+
+#. type: Bullet: '  - '
+msgid "[[Install from Mac OS X and the command line|install/mac/usb/overview]]"
+msgstr ""
+"[[Installation von Mac aus unter Nutzung der Kommandozeile|install/mac/usb/"
+"overview]]"
+
+#. type: Bullet: '  - '
+msgid "[[Burn a DVD|install/dvd]]"
+msgstr "[[Tails auf eine DVD brennen|install/dvd]]"
+
+#. type: Bullet: '  - '
+msgid "[[Download without installing|install/download]]"
+msgstr "[[Ohne Installation herunterladen|install/download]]"
+
+#. type: Bullet: '  - '
+msgid "[[Download and verify using OpenPGP|install/download/openpgp]]"
+msgstr ""
+"[[Ohne Installation herunterladen und mit OpenPGP verifizieren|install/"
+"download/openpgp]]"
+
+#. type: Title #
+#, no-wrap
+msgid "First steps with Tails"
+msgstr "Erste Schritte mit Tails"
+
+#. type: Plain text
+#, no-wrap
+msgid "[[!inline pages=\"doc/first_steps.index\" raw=\"yes\" sort=\"age\"]]\n"
+msgstr "[[!inline pages=\"doc/first_steps.index.de\" raw=\"yes\" sort=\"age\"]]\n"
+
+#. type: Title #
+#, no-wrap
+msgid "Connect to the Internet anonymously"
+msgstr "Sich anonym mit dem Internet verbinden"
+
+#. type: Plain text
+#, no-wrap
+msgid "[[!inline pages=\"doc/anonymous_internet.index\" raw=\"yes\" sort=\"age\"]]\n"
+msgstr "[[!inline pages=\"doc/anonymous_internet.index.de\" raw=\"yes\" sort=\"age\"]]\n"
+
+#. type: Title #
+#, no-wrap
+msgid "Encryption and privacy"
+msgstr "Verschlüsselung und Privatsphäre"
+
+#. type: Plain text
+#, no-wrap
+msgid "[[!inline pages=\"doc/encryption_and_privacy.index\" raw=\"yes\" sort=\"age\"]]\n"
+msgstr "[[!inline pages=\"doc/encryption_and_privacy.index.de\" raw=\"yes\" sort=\"age\"]]\n"
+
+#. type: Title #
+#, no-wrap
+msgid "Work on sensitive documents"
+msgstr "Mit sensiblen Dokumenten arbeiten"
+
+#. type: Plain text
+#, no-wrap
+msgid "[[!inline pages=\"doc/sensitive_documents.index\" raw=\"yes\" sort=\"age\"]]\n"
+msgstr "[[!inline pages=\"doc/sensitive_documents.index.de\" raw=\"yes\" sort=\"age\"]]\n"
+
+#. type: Title #
+#, no-wrap
+msgid "Advanced topics"
+msgstr "Fortgeschrittene Themen"
+
+#. type: Plain text
+#, no-wrap
+msgid "[[!inline pages=\"doc/advanced_topics.index\" raw=\"yes\" sort=\"age\"]]\n"
+msgstr "[[!inline pages=\"doc/advanced_topics.index.de\" raw=\"yes\" sort=\"age\"]]\n"
+
+#~ msgid "This documentation is a work in progress and a collective task."
+#~ msgstr ""
+#~ "Diese Dokumentation ist ständig in Bearbeitung und eine kollektiver "
+#~ "Prozess."
+
+#, fuzzy
+#~| msgid ""
+#~| "  - [[Verify the ISO image|doc/get/verify]]\n"
+#~| "    - [[Using Gnome: Ubuntu, Debian, Tails, etc.|get/"
+#~| "verify_the_iso_image_using_gnome]]\n"
+#~| "    - [[Using Linux with the command line|get/"
+#~| "verify_the_iso_image_using_the_command_line]]\n"
+#~| "    - [[Using other operating systems|get/"
+#~| "verify_the_iso_image_using_other_operating_systems]]\n"
+#~| "    - [[Trusting Tails signing key|get/trusting_tails_signing_key]]\n"
+#~ msgid ""
+#~ "  - [[Verify the ISO image|doc/get/verify]]\n"
+#~ "    - [[Using Gnome: Ubuntu, Debian, Tails, etc.|get/"
+#~ "verify_the_iso_image_using_gnome]]\n"
+#~ "    - [[Using Linux with the command line|get/"
+#~ "verify_the_iso_image_using_the_command_line]]\n"
+#~ "    - [[Using other operating systems|get/"
+#~ "verify_the_iso_image_using_other_operating_systems]]\n"
+#~ "    - [[Trusting Tails signing key|get/trusting_tails_signing_key]]\n"
+#~ "  - [[Download and verify using OpenPGP|install/download/openpgp]]\n"
+#~ msgstr ""
+#~ "  - [[ISO-Image verifizieren|doc/get/verify]]\n"
+#~ "    - [[Unter Gnome: Ubuntu, Debian, Tails, usw.|get/"
+#~ "verify_the_iso_image_using_gnome]]\n"
+#~ "    - [[Unter Linux mit der Kommandozeile|get/"
+#~ "verify_the_iso_image_using_the_command_line]]\n"
+#~ "    - [[Unter anderen Betriebssystemen|get/"
+#~ "verify_the_iso_image_using_other_operating_systems]]\n"
+#~ "    - [[Dem Signaturschlüssel von Tails vertrauen|get/"
+#~ "trusting_tails_signing_key]]\n"
+
+#~ msgid "[[!inline pages=\"doc/get.index\" raw=\"yes\"]]\n"
+#~ msgstr "[[!inline pages=\"doc/get.index.de\" raw=\"yes\"]]\n"

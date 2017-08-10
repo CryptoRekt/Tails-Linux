@@ -1,0 +1,400 @@
+[[!meta title="Building a Tails image"]]
+
+[[!toc levels=3]]
+
+Git repository and branches
+===========================
+
+You will need to clone the Tails Git repository, and to checkout the
+branch that you want to build. This branch should be based on `stable`
+or `devel` (most likely, _not_ `master`): learn
+more about [[our Git branches layout|contribute/git#main-repo]].
+
+<a id="vagrant"></a>
+
+Using Vagrant
+=============
+
+Tails can be built easily in a virtual machine using [Rake], [Vagrant]
+and [vagrant-libvirt]. The process requires the
+[[!wikipedia Kernel-based_Virtual_Machine desc="KVM"]] virtual machine
+hypervisor to be available, a minimum of 512 MiB of free memory and a
+maximum of 20 GB of free storage.
+
+[Rake]: http://rake.rubyforge.org/
+[Vagrant]: http://vagrantup.com/
+[vagrant-libvirt]: https://github.com/vagrant-libvirt/vagrant-libvirt/
+
+For details how Vagrant is setup, see its
+[[design page|build/vagrant-setup]].
+
+## Installing the dependencies in Debian
+
+You must run at least Debian 9 (Stretch), and follow these steps:
+
+    sudo apt-get install \
+        git \
+        rake \
+        libvirt-daemon-system \
+        dnsmasq-base \
+        ebtables \
+        qemu-system-x86 \
+        qemu-utils \
+        vagrant \
+        vagrant-libvirt \
+        vmdebootstrap
+    sudo systemctl restart libvirtd
+
+Make sure that the user that is supposed to initiate the build command
+is part of the `kvm`, `libvirt` and `libvirt-qemu` groups:
+
+    for group in kvm libvirt libvirt-qemu; do sudo adduser $USER $group; done
+
+Then reboot the system (alternatively, if you know what you are doing,
+run `newgrp` and reload the `kvm` module(s)).
+
+## Known issues and workarounds
+
+* If Vagrant failed to start the Tails builder VM the first time
+  (e.g. because of permission issues or the `kvm` module not veing
+  loaded) it will not automatically run the provisioning script, so
+  you must run `rake vm:provision` yourself before attempting your
+  first `rake build`. If that fails, run `rake vm:destroy`, which
+  removes this half-broken VM, and then start from scratch with `rake
+  build` or similar.
+
+* `ruby-fog-libvirt <= 0.0.3` has a
+  [bug](https://github.com/fog/fog-libvirt/issues/21) that will make
+  Vagrant crash when trying to start the VM if you have any libvirt
+  domain defined with a floppy (`fd`) as part of the boot order, set
+  via `<os>` tag; please remove all such occurrences! If you really
+  need to have a floppy as part of some domain's boot order, please
+  set it via `<disk>` by adding `<boot order='1'/>` which does not
+  trigger the bug.
+
+* If the system you are setting this up on ever had the old
+  (Virtualbox-based) Vagrant setup, you will get errors unless you
+  clean up these parts:
+
+  - Remove any old pinnings for `vagrant` and `ruby-net-ssh`. If you
+    followed our old instructions to the point, that should be:
+
+        sudo rm /etc/apt/preferences.d/tails-build-vagrant
+
+  - Clearing the Vagrant configuration seems to also often solve
+    issues:
+
+        rm -r ~/.vagrant.d
+
+* If Vagrant fails to start the Tails builder VM with an error similar
+  to `Virtio-9p Failed to initialize fs-driver with id:fsdev-fs0`,
+  see [[!tails_ticket 11411]].
+
+## Building Tails using Vagrant
+
+Once all dependencies are installed, get the Tails sources and
+checkout the development branch:
+
+    git clone https://git-tails.immerda.ch/tails
+    cd tails
+    git checkout devel
+
+Build Tails using Vagrant:
+
+    rake build
+
+The first time, this can take a little while to download the base virtual
+machine from Tails mirror (around 300 MB). It will then boot the machine,
+set it up and start the build process. When done, several `tails-*` files
+should appear in the current directory.
+
+After you are done working on Tails, do not forget to shut the virtual
+machine down:
+
+    rake vm:halt
+
+One may also want to [[contribute/customize]] their image before building.
+
+To know all available Rake tasks, please run `rake -T`.
+
+Local HTTP proxy
+----------------
+
+If you have a local HTTP proxy, the build system will use it as long as
+you properly set the `http_proxy` environment variable. The easiest way to
+do so is to run:
+
+    http_proxy=http://proxy.lan:3142
+
+... and then, pass the `extproxy` build option (see below).
+
+This needs to be done before any other operations.
+
+<div class="bug">
+
+At least one step of the build does not honor the external proxy
+settings, so outgoing Internet connections from the build VM must be
+allowed to go through anyway.
+
+</div>
+
+Resulting ISO handling
+----------------------
+
+To tell the build system in which directory the resulting ISO should be
+stored, use:
+
+    ARTIFACTS='/path/to/directory'
+
+
+Build options
+-------------
+
+Options regarding the build process can be set using the
+`TAILS_BUILD_OPTIONS` environment variable. Multiple options must be
+separated by whitespaces.
+
+The following options are available:
+
+### Memory build settings
+
+Tails builds way faster when everything is done in memory. If your computer
+runs Linux and happens to have more than 7 GB of free memory before you
+start the virtual machine, it will automatically switch to 'build in RAM'
+mode.
+
+To force a specific behaviour please set:
+
+ * **ram**: start the virtual machine with 7 GB of memory, build Tails
+   inside a `tmpfs`. Build fails if the system is not in a proper state to
+   do so.
+ * **noram**: start the virtual machine with 512 MB of memory if not already
+   done, build Tails using the virtual machine hard disk.
+
+### HTTP proxy settings
+
+Building Tails requires downloading a little bit more than 1 GB of Debian
+packages. To preserve bandwidth and developer sanity, using a HTTP proxy is
+nearly a must. Tails virtual machine contains a fully configured local HTTP
+proxy that will be used if no other local proxy is defined.
+
+The following flags can be used to force a specific behaviour:
+
+ * **extproxy**: use the proxy configured through the `http_proxy`
+   environment variable. Fail if it is not set.
+ * **vmproxy**: use the local proxy configured in the virtual machine even
+   if a local HTTP proxy is set.
+ * **noproxy**: do not use any HTTP proxy.
+
+### Network settings
+
+ * **offline**: This option will make the build system do its best to
+   not depend on the network, e.g. if you use the VM's caching proxy
+   if will *only* use cached APT lists and packages. Use this when you
+   do not have an Internet connection.
+
+### SquashFS compression settings
+
+One of the most expensive operations when building Tails is the creation
+of the final SquashFS. It also depends on the compression algorithm used.
+When working on the `stable` or `testing` branch, the image will be made
+using the slow but efficient default. Any other setup will switch to the
+faster *gzip*.
+
+Forcing a specific behaviour can be done using:
+
+ * **gzipcomp**: always use *gzip* to create the SquashFS.
+ * **defaultcomp**: always use the default compression algorithm.
+
+### Virtual CPUs settings
+
+The number and type of virtual CPUs that are allocated in the virtual
+machine can be customized through:
+
+ * **cpus=_n_**: allocate _n_ CPUs to the virtual machine.
+   Obviously you should not allocate more virtual CPUs than the number
+   of cores available to the host system. When using Linux, the number
+   of CPUs allocated will default to be the same as the host system.
+
+ * **cpumodel=_model_**: type of the CPUs allocated to the virtual
+   machine. See
+   [the corresponding libvirt documentation](https://libvirt.org/formatdomain.html#elementsCPU).
+
+ * **machinetype=_type_**: type of the QEMU machine; see the output of
+   `qemu-system-x86_64 -machine help` for available options.
+
+### Git settings
+
+The build system can only work on files that have been *committed* to the Git
+repository. By default, it will refuse to start a build in presence of
+uncommitted changes. This behaviour can be controlled by:
+
+ * **ignorechanges**: allow to make a build that will ignore changes in the Git
+   repository.
+
+### Other variations useful for testing build reproducibility
+
+An offset can be applied to the current date in the virtual machine
+through:
+
+ * **dateoffset=_+n_**, **dateoffset=_-n_**: change the virtual
+   machine system time by _+n_ or _-n_ days.
+
+### Developer convenience settings
+
+ * **keeprunning**: do not clean up the builder VM on build
+   success. The wiki will be cached for subsequent builds with this
+   option set.
+
+ * **forcecleanup**: ensure a new builder VM is used for `rake build`,
+   and also clean up this VM after the build, no matter if it
+   succeeded or not.
+
+ * **rescue**: implies **keeprunning** and will also not clean up the
+   build directory, which is useful for investigating build failures.
+
+### Jenkins
+
+  * **mergebasebranch**: if building from a branch (not tag!) this
+    forces a merge of the base branch before the build process starts
+    for real. This is mostly meant for our Jenkins deployment, so use
+    at your own risk.
+
+### Example
+
+The fastest build you could pretend to get can be done by setting:
+
+    export TAILS_BUILD_OPTIONS="ram extproxy gzipcomp"
+
+This will force the build to happen in RAM, and will use use an HTTP proxy
+external to the virtual machine, and SquashFS compression will be done
+using *gzip*.
+
+<a id="manual"></a>
+
+Building manually
+=================
+
+<div class="note">
+This section may not be in tested and working shape as all active
+developers use Vagrant.
+</div>
+
+
+In order to build Tails manually, you need a running Debian Jessie
+system and some [backports](http://backports.debian.org/). Anything
+else will fail.
+
+Dependencies
+------------
+
+The following Debian packages need to be installed:
+
+* our `live-build` 2.x package, adapted for Wheezy and later. Its version is
+  something like *3.0.5+really+is+2.0.12-0.tails2*. One can install it
+  from:
+
+      deb http://deb.tails.boum.org/ builder-jessie main
+
+  This APT repository's signing key can be found:
+
+  - in our Git tree (that you have cloned already, right?):
+    `config/chroot_sources/tails.chroot.gpg`
+  - at <http://deb.tails.boum.org/key.asc>
+  - on the keyservers.
+
+  It is certified by the
+  [[Tails signing key|doc/about/openpgp_keys#signing]], and its
+  fingerprint is:
+
+      221F 9A3C 6FA3 E09E 182E  060B C798 8EA7 A358 D82E
+
+  You should pin that repository, so that live-build isn't upgraded to
+  the version of jessie.
+
+      #/etc/apt/preferences.d/00-builder-jessie-pinning
+      Package: *
+      Pin: release o=Debian,a=stable
+      Pin-Priority: 700
+
+      Package: *
+      Pin: origin deb.tails.boum.org
+      Pin-Priority: 800
+
+
+  Then install these dependencies from Jessie:
+
+      apt-get install \
+        dpkg-dev \
+        gettext \
+        intltool \
+        libfile-slurp-perl \
+        liblist-moreutils-perl \
+        libyaml-libyaml-perl \
+        libyaml-perl \
+        libyaml-syck-perl \
+        perlmagick \
+        po4a \
+        syslinux-utils \
+        time \
+        whois
+
+  And install these dependencies from jessie-backports (please verify
+  manually that the following command actually does install the
+  expected versions):
+
+      apt-get install \
+        debootstrap/jessie-backports \
+        ikiwiki/jessie-backports
+
+Configure live-build
+--------------------
+
+Remove any line matching `/^\[[:space:]]*LB.*MIRROR.*=/` in
+`/etc/live/build.conf`.
+
+Build process
+-------------
+
+Every build command must be run as `root`, at the root of a clone of the
+[[`tails` repository|git]]. A local HTTP proxy is required.
+
+In short, a build shall be done using:
+
+    lb clean --all && lb config --apt-http-proxy http://localhost:3142 && lb build
+
+Running `lb config` or `lb build` in an environment that wasn't full
+cleaned first is not supported.
+
+### Customize the build process if needed
+
+If you need to set custom build settings that are specific to your
+local environment, such as a custom Debian mirror or APT proxy, you
+probably want to configure live-build a bit.
+
+The most common customizations are documented on this wiki:
+
+* to avoid compressing the SquashFS using XZ (efficient, but very
+  slow), `export MKSQUASHFS_OPTIONS='-comp gzip'` in your
+  build environment;
+* to avoid downloading lots of Debian packages during every build, you
+  can use [[!debpts apt-cacher-ng]]; however, the build system
+  constantly switches APT sources for our
+  [[APT repositories|contribute/APT_repository]], so some custom
+  configuration is needed to make `apt-cacher-ng` useful: see the
+  bits about `apt-cacher-ng` in
+  [[!tails_gitweb vagrant/provision/assets/build-tails]].
+
+More documentation about this can be found in the [Debian Live
+Manual](http://live.debian.net/manual-2.x/html/live-manual.en.html).
+
+More information
+================
+
+More documentation about the build process can be found in the [Debian
+Live Manual](http://live.debian.net/manual/oldstable/html/live-manual.en.html).
+
+Related pages
+=============
+
+[[!map pages="contribute/build/*"]]

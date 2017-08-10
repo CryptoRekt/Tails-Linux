@@ -1,0 +1,133 @@
+#! /bin/sh
+
+set -e
+set -u
+
+PERL_PROGS="/usr/local/bin/tails-security-check \
+   /usr/local/lib/tails-htp-notify-user \
+   /usr/local/lib/tails-virt-notify-user"
+PYTHON_PROGS="/etc/whisperback/config.py \
+   /usr/local/bin/tails-about /usr/local/sbin/tails-additional-software"
+SHELL_PROGS="/etc/NetworkManager/dispatcher.d/60-tor-ready.sh \
+   /usr/local/bin/electrum \
+   /usr/local/bin/keepassx \
+   /usr/local/bin/tails-upgrade-frontend-wrapper \
+   /usr/local/lib/tails-spoof-mac \
+   /usr/local/bin/tor-browser \
+   /usr/local/sbin/unsafe-browser"
+JAVASCRIPT_PROGS=" \
+   /usr/share/gnome-shell/extensions/shutdown-helper@tails.boum.org/extension.js \
+   /usr/share/gnome-shell/extensions/torstatus@tails.boum.org/extension.js \
+"
+
+LOCALE_BASEDIR=config/chroot_local-includes/usr/share/locale
+
+### External libraries
+
+. config/chroot_local-includes/usr/local/lib/tails-shell-library/po.sh
+
+### Functions
+
+prog_potfile () {
+   prog=$1
+
+   progpath="config/chroot_local-includes$prog"
+   case $prog in
+       /usr/share/gnome-shell/extensions/shutdown-helper@tails.boum.org/extension.js)
+           domain=shutdown-helper-extension.js
+           ;;
+       *)
+           domain=$(basename $prog)
+           ;;
+   esac
+   echo "tmp/pot/${domain}.pot"
+}
+
+refresh_pot () {
+   prog=$1
+   proglang=$2
+
+   progpath="config/chroot_local-includes$prog"
+   pot=$(prog_potfile $prog)
+
+   mkdir -p "$(dirname $pot)"
+
+   if [ -e "${progpath}" ]; then
+      xgettext --language="${proglang}" --from-code=UTF-8 \
+        -o "${pot}" "${progpath}"
+      sed -i "s@^\"Content-Type: text/plain\; charset=CHARSET\\\n\"@\"Content-Type: text/plain\; charset=UTF-8\\\n\"@" "${pot}"
+   fi
+}
+
+po_file () {
+   locale=$1
+
+   echo "po/${locale}.po"
+}
+
+mo_file () {
+   locale=$1
+
+   echo "${LOCALE_BASEDIR}/${locale}/LC_MESSAGES/tails.mo"
+}
+
+refresh_mo () {
+   for locale in "$@" ; do
+      po=$(po_file $locale)
+      mo=$(mo_file $locale)
+      mkdir -p $(dirname "$mo")
+      msgfmt -o "${mo}" "${po}"
+   done
+}
+
+no_left_out_files () {
+   (cd po && intltool-update --maintain)
+   [ ! -e po/missing ] || return 1
+   return 0
+}
+
+intltool_update_pot () {
+   (
+      cd po
+      cp -a tails.pot tails.pot.orig
+      intltool-update --pot --gettext-package=tails
+
+      if diff_without_pot_creation_date tails.pot.orig tails.pot ; then
+         echo "Only header changes in tails.pot, restoring the old one."
+         mv tails.pot.orig tails.pot
+      else
+         echo "Real changes in tails.pot: keeping the updated one."
+         rm tails.pot.orig
+      fi
+   )
+}
+
+intltool_merge () {
+   grep -E --no-filename '[^ #]*\.(desktop|directory)\.in$' po/POTFILES.in \
+      | while read infile ; do
+           intltool-merge --quiet --desktop-style --utf8 \
+           po "$infile" "${infile%.in}"
+        done
+}
+
+### Main
+
+# Update POT files
+mkdir -p tmp/pot
+for prog in $PERL_PROGS   ; do refresh_pot $prog Perl   ; done
+for prog in $PYTHON_PROGS ; do refresh_pot $prog Python ; done
+for prog in $SHELL_PROGS  ; do refresh_pot $prog Shell  ; done
+for prog in $JAVASCRIPT_PROGS  ; do refresh_pot $prog JavaScript ; done
+intltool_update_pot
+
+# If left out files are detected, intltool-update --maintain writes
+# them to po/missing.
+no_left_out_files || exit 3
+
+# Update PO files
+intltool_update_po $(po_languages)
+
+# Update files that are actually used at runtime
+refresh_mo $(po_languages)
+intltool_merge
+chmod +x config/chroot_local-includes/etc/skel/Desktop/*.desktop

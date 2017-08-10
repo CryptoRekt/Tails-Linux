@@ -1,0 +1,10 @@
+[[!meta date="Thu Nov 25 23:57:24 2009"]]
+[[!tag announce]]
+
+Amnesia 0.3 released
+
+See the [online
+Changelog](https://git-tails.immerda.ch/tails/plain/debian/changelog?h=0.3)
+for details.
+
+[[Download it, seed it!|install]]

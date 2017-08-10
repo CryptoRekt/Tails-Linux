@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+# Import try_for()
+. /usr/local/lib/tails-shell-library/common.sh
+
+# Import tor_bootstrap_progress()
+. /usr/local/lib/tails-shell-library/tor.sh
+
+# Import log()
+. /usr/local/lib/tails-shell-library/log.sh
+_LOG_TAG="$(basename $0)"
+
+systemctl restart tor@default.service
+
+if try_for 270 '[ "$(tor_bootstrap_progress)" -eq 100 ]'; then
+    log "Tor has successfully bootstrapped."
+else
+    log "Tor failed to bootstrap"
+    exit 1
+fi

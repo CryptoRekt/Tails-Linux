@@ -1,0 +1,25 @@
+#! /bin/sh
+
+if [ $# -ge 1 ]; then
+   PAGE="$1"
+else
+   PAGE='index'
+fi
+
+WIKI_ROOT='/usr/share/doc/tails/website'
+LANG_CODE="`echo ${LANG} | head -c 2`"
+
+if [ -r "${WIKI_ROOT}/${PAGE}.${LANG_CODE}.html" ]; then
+   FILE="${PAGE}.${LANG_CODE}.html"
+elif  [ -r "${WIKI_ROOT}/${PAGE}.en.html" ]; then
+   FILE="${PAGE}.en.html"
+else
+   FILE="${PAGE}.html"
+fi
+
+if [ -n "${2}" ]; then
+   FILE="${FILE}#${2}"
+fi
+
+export TOR_BROWSER_SKIP_OFFLINE_WARNING=yes
+exec /usr/local/bin/tor-browser "file://${WIKI_ROOT}/${FILE}"

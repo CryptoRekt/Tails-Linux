@@ -1,0 +1,30 @@
+[[!meta title="Calendar"]]
+
+* 2017-08-04, noon: all branches targeting Tails 3.1 must be merged
+
+* 2017-08-05: Import Tor Browser 7.0.2, build and upload Tails 3.1
+
+* 2017-08-06: Start testing Tails 3.1
+
+* 2017-08-08: Release 3.1 (Firefox 52.3)
+  - bertagaz is the RM
+  - intrigeri is on-call for Foundations Team work until 2017-07-30.
+  - anonym takes over the Foundations Team on-call hat on 2017-07-31.
+
+* 2017-09-07, 16:00 (Berlin time): CI team meeting
+
+* 2017-10-03: Release 3.2? (Firefox 52.4) — anonym is the RM
+
+* 2017-10-05, 16:00 (Berlin time): CI team meeting
+
+* 2017-11-02, 16:00 (Berlin time): CI team meeting
+
+* 2017-11-14: Release 3.3? (Firefox 52.5) — anonym is the RM
+
+* 2017-12-07, 16:00 (Berlin time): CI team meeting
+
+* 2018-01-04, 16:00 (Berlin time): CI team meeting
+
+* 2018-01-16: Release 3.4? (Firefox 52.6)
+
+* 2018-02-01, 16:00 (Berlin time): CI team meeting

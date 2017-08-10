@@ -1,0 +1,34 @@
+#!/bin/sh
+
+set -e
+set -u
+
+. gettext.sh
+TEXTDOMAIN="tails"
+export TEXTDOMAIN
+
+CONF_DIR="${HOME}"/.electrum
+
+electrum_config_is_persistent() {
+    [ "$(findmnt --noheadings --output SOURCE --target "${CONF_DIR}")" = "/dev/mapper/TailsData_unlocked[/electrum]" ]
+}
+
+verify_start () {
+    local dialog_msg="<b><big>`gettext \"Persistence is disabled for Electrum\"`</big></b>
+
+`gettext \"When you reboot Tails, all of Electrum's data will be lost, including your Bitcoin wallet. It is strongly recommended to only run Electrum when its persistence feature is activated.\"`
+
+`gettext \"Do you want to start Electrum anyway?\"`
+"
+    local launch="`gettext \"_Launch\"`"
+    local exit="`gettext \"_Exit\"`"
+    zenity --question --title "" --text "${dialog_msg}" --default-cancel \
+           --ok-label "${launch}" --cancel-label "${exit}"
+}
+
+if ! electrum_config_is_persistent; then
+    verify_start || exit 0
+fi
+
+exec /usr/bin/electrum "${@}"
+

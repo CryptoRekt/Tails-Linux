@@ -1,0 +1,342 @@
+[[!meta title="Manual test suite"]]
+
+[[!toc levels=1]]
+
+Some [[test results]] that might be useful to keep are saved.
+
+<div class="caution">
+Read this document from the branch used to prepare the release.
+</div>
+
+# Changes
+
+Keeping an eye on the changes between released versions is one of the
+many safeguards against releasing crap.
+
+## Source
+
+
+Compare the to-be-released source code with previous version's one e.g.:
+
+Boot the candidate ISO and find the commit it was build from with the
+`tails-version` command.
+
+Then, from the source tree, see the diff:
+
+	git diff --find-renames <old ISO commit>..<ISO commit>
+
+e.g. `git diff --find-renames 334e1c485a3a79be9fff899d4dc9d2db89cdc9e1..cfbde80925fdd0af008f10bc90c8a91a578c58e3`
+
+## Result
+
+Compare the list of bundled packages and versions with the one shipped last
+time. `.packages` are usually attached to the email announcing the ISO is ready.
+
+	/usr/bin/diff -u \
+	    wiki/src/torrents/files/tails-amd64-3.1.packages \
+	    tails-amd64-3.2.packages \
+	    | wdiff --diff-input  --terminal
+
+Check the output for:
+
+- new packages that may cause harm or make the images unnecessarily
+  big
+- packages that could be erroneously removed
+- new versions of software we might not have audited yet (including:
+  does the combination of our configuration with software X version
+  Y+1 achieve the same wished results as with software X version Y?)
+
+## Image size
+
+Check the image size has not changed much since the last release.
+
+In a directory with many Tails ISO images:
+
+    find -iname "tails*.iso" -exec ls -lh '{}' \; | sort -rhk 5
+
+# Automated test suite
+
+Our long term goal is to eliminate the manual test suite (except the
+parts which require real hardware) and have the automated test suite
+run all our tests. It's design, and how to write new tests, are
+documented on a [[dedicated page|test/automated_tests]].
+
+## Running the automated test suite
+
+See [[test/setup]] and [[test/usage]].
+
+Do point `--old-iso` to the ISO of the previous stable release.
+
+## Automated test suite migration progress
+
+The manual test suite below either contains tests that cannot be
+automated, has no automated test implemented yet, or has a test
+implemented, but it either hasn't been reviewed, had a confirmed pass
+by someone other than the test author, or has issues. The latter is
+tracked by tickets prefixed with `todo/test_suite:`.
+
+# Tor Browser
+
+## Security and fingerprinting
+
+* Run the [tests the Tor Browser folks
+  use](https://trac.torproject.org/projects/tor/wiki/doc/build/BuildSignoff#TestPagestoUse).
+  (automate: [[!tails_ticket 10260]])
+* Compare the fingerprint of Tails and the latest Tor Browser using at least
+  <https://panopticlick.eff.org/> (automate: [[!tails_ticket 10262]])
+  - The exposed User-Agent should match the latest Tor Browser's one.
+  - Update the [[fingerprint section|support/known_issues#fingerprint]] of the
+    known issues page if needed.
+* WebRTC should be disabled: (automate: [[!tails_ticket 10264]])
+  - In `about:config` check that `media.peerconnection.enabled` is set to
+    `false`.
+  - <http://mozilla.github.io/webrtc-landing/>, especially the `getUserMedia`
+    test. It's expected that the audio test works if you agree to share a
+    microphone with the remote website; anything else should fail.
+  - <http://net.ipcalf.com/> should display
+    `ifconfig | grep inet | grep -v inet6 | cut -d" " -f2 | tail -n1`
+* Running `/usr/local/lib/getTorBrowserUserAgent` should produce the User-Agent set by the
+  installed version of Torbutton, and used in the Tor Browser. (automate: [[!tails_ticket 10268]])
+
+# Thunderbird
+
+* Check mail over IMAP using:
+  - a hidden service IMAP server (e.g. Riseup, zsolxunfmbfuq7wf.onion with SSL).
+* Check mail over POP using:
+  - a hidden service POP server (e.g. Riseup, zsolxunfmbfuq7wf.onion with SSL).
+* Send an email using:
+  - a hidden service SMTP server (see above).
+
+* Check that the profile works and is torified:
+  1. Send an email using Thunderbird and a non-anonymizing SMTP relay (a
+     SMTP relay that writes the IP address of the client it is
+     relaying email for in the Received header).
+  1. Then check that email's headers once received, especially the
+     `Received:` one.
+* Also check that the EHLO/HELO SMTP message is not leaking anything
+  at the application level:
+  1. Start Thunderbird using the GNOME Applications menu.
+  2. Disable SSL/TLS for SMTP in Thunderbird (so take precautions for not
+     leaking your password in plaintext by either changing it
+     temporarily or using a disposable account). Or better, configure
+     StartTLS, since it will send two EHLO/HELO: one before TLS is
+     initiated; one after. The assumption here is that Thunderbird will
+     send the same both times.
+  3. Run `sudo tcpdump -n -i lo -w dump` while sending an email to
+     capture the packets before Tor encrypts it, then close
+     tcpdump. Note that the packet containing EHLO/HELO will be sent
+     really early, so even if the email failed (e.g. because the mail
+     server doesn't support plaintext SMTP on port 587) we are ok.
+  4. Check the dump for the HELO/EHLO message and
+     verify that it only contains `127.0.0.1`:
+     `sudo tcpdump -A -r dump | grep EHLO`
+* Make sure Thunderbird Mail use its dedicated `SocksPort` (see "SocksPort
+  for the MUA" in `/etc/tor/torrc`) when connecting to IMAP / POP3 /
+  SMTP servers (both clearnet and hidden services) by monitoring the
+  output of this command:
+
+      sudo watch -n 0.1 'ss -taupen | grep thunderbird'
+
+# Tor
+
+* The version of Tor should be the latest stable one, which is the highest version number
+  before alpha releases on <http://deb.torproject.org/torproject.org/pool/main/t/tor/>. (automate:
+  [[!tails_ticket 10259]])
+
+# WhisperBack
+
+* I should be able to send a bug report with WhisperBack.
+* When we receive this bug report on the tails-bugs mailing list,
+  Schleuder tells us that it was sent encrypted.
+
+# Root access control
+
+* Check you cannot login as root with `su` neither with the `amnesia` password nor
+  with the `live` one. (automate: [[!tails_ticket 10274]])
+
+# Virtualization support
+
+* Test that Tails starts and the browser launches in VirtualBox.
+
+# APT (automate: [[!tails_ticket 8164 desc="#8164"]])
+
+     grep -r jenw7xbd6tf7vfhp.onion /etc/apt/sources.list*
+
+* Make sure the Tails repository suite in matching the release tag (for example
+  the release version number) is in APT sources.
+* Make sure the Tails repository unversioned suites (e.g. `testing`,
+  `stable` and `devel`) are *not* in APT sources.
+
+<a id="incremental-upgrades"></a>
+
+# Incremental upgrades
+
+* List the versions from which an upgrade paths to this one is described.
+  In the `stable` or `testing` branch:
+
+      git grep -l "  version: '\?0.23'\?" wiki/src/upgrade/
+
+* For each description file, open it and verify if it allows incremental upgrade
+  or only full upgrade.
+
+* For each previous version from which an upgrade paths is described, install it
+  and try to upgrade:
+  * For every incremental upgrade path: make sure the resulting updated
+    system "works fine" (boots and pretends to be the correct version).
+  * For upgrade paths that only propose a full upgrade: make sure the
+    user is told to do a manual upgrade.
+
+  If:
+
+  * the update-description files have been published on the
+    *test* channel already (see <https://tails.boum.org/upgrade/v1/Tails/>)
+  * and the IUK has been published already (see
+    <https://archive.torproject.org/amnesia.boum.org/tails/alpha/>
+    and <https://archive.torproject.org/amnesia.boum.org/tails/stable/>):
+
+  then:
+
+        echo 'TAILS_CHANNEL="test"' | sudo tee --append /etc/os-release && \
+        tails-upgrade-frontend-wrapper
+
+  Else, use a local test setup:
+
+  * A web server on the LAN.
+  * A copy of `wiki/src/upgrade` from the `stable` or `testing` branch,
+    for example in `/var/www/tails/upgrade/v1/Tails/3.14~rc2/amd64/stable/updates.yml`
+  * A copy of the `iuk` directory of our HTTP mirrors,
+    for example in `/var/www/tails/stable/iuk/Tails_amd64_3.14-rc2_to_3.14.iuk`.
+
+    To synchronize your local copy:
+
+        torsocks rsync -rt --progress --delete rsync.torproject.org::amnesia-archive/tails/stable/iuk/ /var/www/tails/stable/iuk/
+
+  * Patch `/etc/hosts` in Tails to point to your web server:
+
+        echo "192.168.1.4    dl.amnesia.boum.org" | sudo tee --append /etc/hosts
+
+  * Patch sudo configuration to allow passing arbitrary arguments to
+    `tails-upgrade-frontend`:
+
+        sudo sed -i \
+            -e 's,/usr/bin/tails-upgrade-frontend ""$,/usr/bin/tails-upgrade-frontend,' \
+            /etc/sudoers.d/zzz_upgrade
+
+  * Call the upgrader must be called, from inside the system to upgrade,
+    with every needed option to use the local web server rather than the
+    online one, for example:
+
+        DISABLE_PROXY=1 SSL_NO_VERIFY=1 \
+        tails-upgrade-frontend-wrapper --override-baseurl \
+        http://192.168.1.4/tails
+
+# Unsafe Web Browser
+
+* Browsing (by IP) a FTP server on the LAN should be possible. (automate: [[!tails_ticket 10252]])
+
+# Real (non-VM) hardware
+
+`[can't-automate]`
+
+* Boot on bare-metal from USB.
+* Boot on bare-metal from DVD.
+* Again, boot on bare-metal from DVD, and measure the boot time (from
+  syslinux menu until the GNOME desktop is ready -- quickly press ENTER in the
+  Greeter) and compare with the boot time of the previous Tails
+  version. The new one should not be significantly slower to start.
+
+# Documentation
+
+* The "Tails documentation" desktop launcher should open the
+  [[getting started]] page (automate: [[!tails_ticket 8788]]):
+  - in one language to which the website is translated
+  - in one language to which the website is not translated (=> English)
+* Browse around in the documentation shipped in the image. Internal
+  links should be fine. (automate: [[!tails_ticket 10254]])
+
+# Internationalization
+
+Boot and check basic functionality is working for these (language,
+region) tuples:
+
+ - Arabic - Egypt
+ - Chinese - China
+ - Deutsch - Deutschland
+ - English - USA
+ - Español - España
+ - Français - France
+ - Italiano - Italia
+ - Persian - Iran
+ - Português - Brasil
+ - Russian - Russian Federation
+ - Tiếng Việt - Vietnam
+
+You *really* have to reboot between each language.
+
+* The chosen keyboard layout must be applied. (automate: [[!tails_ticket 10261]])
+* The virtual keyboard must work and be auto-configured to use the same keyboard
+  layout as the X session. (automate: [[!tails_ticket 10263]])
+* In the Tor Browser:
+  - Disconnect.me must be the default, pre-selected search plugin. (automate: [[!tails_ticket 10265]])
+  - the Disconnect.me, Startpage and Wikipedia search plugins must be
+    localized for the supported locales (automate: [[!tails_ticket 10267]]):
+
+        . /usr/local/lib/tails-shell-library/tor-browser.sh
+        supported_tor_browser_locales
+
+## Spellchecking
+
+* Check that every supported language is listed in the list of languages for
+  spell checking. (automate: [[!tails_ticket 10269]])
+  - Visit <https://translate.google.com/>.
+  - Right-click and choose "Check spelling".
+  - Right-click and check the list of available languages.
+* For a few languages, check the spell checking:
+  - Type something in the textarea.
+  - Right-click and select a language.
+  - Verify that the spelling suggestion are from that language. (automate: [[!tails_ticket 10271]])
+
+# Misc
+
+* Check that Tails Greeter's "more options" screen displays properly
+  on a display with 600 px height, preferably in a language that's
+  more verbose than English (e.g. French). (automate: [[!tails_ticket 10276]])
+* Check that all seems well during init: (automate: [[!tails_ticket 10277]])
+  - `systemctl --failed --all` should say `0 loaded units listed`
+  - the output of `journalctl` should seem OK.
+
+# DAVE
+
+* Visit <https://tails.boum.org/install/debian/usb> in a Firefox-based
+  browser. Verify that you can install the Firefox Addon. Start
+  downloading a Tails image and copy the used mirror URL.
+  - The URL should contain a mirror URL from
+    <https://tails.boum.org/mirrors.json>.
+  - Verify that pausing and resuming the download from this URL works.
+  - Verify that when you start the download, you can see it appear in
+    the download list (Ctrl+Shift+Y).
+* Test a disabled mirror (Possible only in FF > 51 because of
+  <https://bugzilla.mozilla.org/show_bug.cgi?id=1275289>.)
+  - Disabled mirrors have `"weight": 0` in
+    https://tails.boum.org/mirrors.json so just pick one of them. If
+    there's none, skip this test.
+  - Do not use Firefox over Tor.
+  - To disable Firefox's internal DNS cache, navigate to
+    `about:config` and set these prefererences:
+    * `network.dnsCacheExpirationGracePeriod = 0`
+    * `network.dnsCacheExpiration = 0`
+    * `network.dnsCacheEntries = 0`
+  - To enable logging, in `about:config` add these preferences:
+    * `extensions.dave@tails.boum.org.sdk.console.logLevel = "all"`
+    * `extensions.sdk.console.logLevel = "all"`
+  - Then edit your `/etc/hosts` file to point the URL of the previously
+    used mirror to 127.0.0.1.
+  - Now reload the download page, and try to resume the download
+    again.
+    XXX: How is it ensured that the disabled mirror we picked above is
+    used?
+  - In the Firefox console (Ctrl+Shift+J) you should see the
+    `mirror.blob` variable pointing to a different mirror. This should
+    work.
+    XXX: Please provide more instructions for how to find this
+    variable, possibly with a (large but shortened) example.

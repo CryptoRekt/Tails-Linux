@@ -1,0 +1,40 @@
+[[!meta title="Encrypted persistence"]]
+
+If you start Tails from a USB stick or SD card, you can create a
+persistent volume in the free space left on the device by <span
+class="application">Tails Installer</span>. The files in the persistent
+volume are saved encrypted and remain available across separate working sessions.
+
+<div class="note">
+
+<p>It is only possible to create a persistent volume if the device, USB stick or
+SD card, was installed using <span class="application">Tails Installer</span>.</p>
+
+<p>This requires a USB stick or SD card of <strong>at least 4 GB</strong>.</p>
+
+</div>
+
+You can use this persistent volume to store different kinds of files:
+
+  - your personal files and working documents
+  - the software packages that you download and install in Tails
+  - the configuration of the programs you use
+  - your encryption keys
+
+The persistent volume is an encrypted partition protected by a passphrase.
+
+Once the persistent volume is created, you can choose to activate it or not
+each time you start Tails.
+
+[[!inline pages="doc/first_steps/persistence.caution" raw="yes" sort="age"]]
+
+How to use the persistent volume
+=================================
+
+  - [[Warnings about persistence|first_steps/persistence/warnings]]
+  - [[Create & configure the persistent volume|first_steps/persistence/configure]]
+  - [[Enable & use the persistent volume|first_steps/persistence/use]]
+  - [[Change the passphrase of the persistent volume|first_steps/persistence/change_passphrase]]
+  - [[Manually copy your persistent data to a new device|first_steps/persistence/copy]]
+  - [[Check the file system of the persistent volume|first_steps/persistence/check_file_system]]
+  - [[Delete the persistent volume|first_steps/persistence/delete]]
